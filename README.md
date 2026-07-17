@@ -625,7 +625,7 @@ foreach ($logs->deploy->steps as $step) {
 
 ## Instances
 
-Instances are the compute infrastructure that runs your application code. Every environment has at least one **App** instance that serves HTTP traffic, and may optionally have **Worker** instances for background processing.
+Instances are the compute infrastructure that runs your application code. Every environment has at least one **App** instance that serves HTTP traffic, and may optionally have **Worker** or **Managed Queue** instances for background processing.
 
 Instances come in two performance classes: **Flex** (lightweight, cost-efficient, supports hibernation) and **Pro** (larger sizes for sustained production workloads). Scaling can be disabled, set to custom min/max replicas, or left unlimited for automatic horizontal scaling.
 
@@ -678,13 +678,48 @@ LaravelCloud::deleteInstance($instanceId);
 $sizes = LaravelCloud::instanceSizes();
 ```
 
+### Managed Queues
+
+Managed queues are queue-focused instances that Laravel Cloud runs and supervises for you. You can create them with queue-specific timeout settings, pause or resume processing, purge pending jobs, set the default queue instance, and inspect failed jobs:
+
+```php
+use Redberry\LaravelCloudSdk\Enums\InstanceType;
+use Redberry\LaravelCloudSdk\Enums\InstanceSize;
+use Redberry\LaravelCloudSdk\Enums\InstanceScalingType;
+
+$queue = LaravelCloud::createInstance($environmentId,
+    name: 'default-queue',
+    type: InstanceType::ManagedQueue,
+    size: InstanceSize::FlexG1vcpu512mb,
+    scalingType: InstanceScalingType::None,
+    maxReplicas: 1,
+    minReplicas: 1,
+    visibilityTimeout: 60,
+    pollingInterval: 20,
+    shutdownTimeout: 30,
+    sleepWithApp: true,
+);
+
+LaravelCloud::pauseManagedQueue($queue->id);
+LaravelCloud::resumeManagedQueue($queue->id);
+LaravelCloud::purgeManagedQueue($queue->id);
+LaravelCloud::setDefaultManagedQueue($queue->id);
+
+$failedJobs = LaravelCloud::managedQueueFailedJobs($queue->id);
+
+foreach ($failedJobs as $job) {
+    LaravelCloud::retryManagedQueueFailedJob($queue->id, $job->id);
+    LaravelCloud::deleteManagedQueueFailedJob($queue->id, $job->id);
+}
+```
+
 <details>
 <summary>Available parameters for <code>createInstance</code></summary>
 
 | Parameter | Type | Required | Description |
 |---|---|---|---|
 | `name` | `string` | Yes | The instance name (e.g., `web`, `worker`). |
-| `type` | `string\|InstanceType` | Yes | The instance type: `app`, `service`, or `queue`. |
+| `type` | `string\|InstanceType` | Yes | The instance type: `app`, `service`, `queue`, `serverless_queue`, or `managed_queue`. |
 | `size` | `string\|InstanceSize` | Yes | The compute size (e.g., `FlexM2vcpu2gb`, `ProG2vcpu4gb`). |
 | `scalingType` | `string\|InstanceScalingType` | Yes | Scaling strategy: `none`, `custom`, or `auto`. |
 | `maxReplicas` | `int` | Yes | The maximum number of replicas when using `custom` scaling. |
@@ -693,6 +728,10 @@ $sizes = LaravelCloud::instanceSizes();
 | `scalingCpuThresholdPercentage` | `?int` | No | CPU usage percentage threshold that triggers scaling. |
 | `scalingMemoryThresholdPercentage` | `?int` | No | Memory usage percentage threshold that triggers scaling. |
 | `backgroundProcesses` | `array` | No | Array of `BackgroundProcessConfigData` objects. All fields are optional: `connection` (string), `queue` (string), `tries` (int), `backoff` (int), `sleep` (int), `rest` (int), `timeout` (int), `force` (bool). |
+| `visibilityTimeout` | `?int` | No | Managed queue visibility timeout in seconds. |
+| `pollingInterval` | `?int` | No | Managed queue polling interval in seconds. |
+| `shutdownTimeout` | `?int` | No | Managed queue graceful shutdown timeout in seconds. |
+| `sleepWithApp` | `?bool` | No | Whether the managed queue sleeps with the app instance. |
 
 </details>
 
@@ -713,6 +752,10 @@ $sizes = LaravelCloud::instanceSizes();
 | `usesInertiaSsr` | `bool` | No | Whether Inertia SSR is enabled. |
 | `scalingCpuThresholdPercentage` | `?int` | No | CPU threshold for scaling. |
 | `scalingMemoryThresholdPercentage` | `?int` | No | Memory threshold for scaling. |
+| `visibilityTimeout` | `?int` | No | Update managed queue visibility timeout in seconds. |
+| `pollingInterval` | `?int` | No | Update managed queue polling interval in seconds. |
+| `shutdownTimeout` | `?int` | No | Update managed queue graceful shutdown timeout in seconds. |
+| `sleepWithApp` | `?bool` | No | Update whether the managed queue sleeps with the app instance. |
 
 </details>
 
@@ -723,7 +766,7 @@ $sizes = LaravelCloud::instanceSizes();
 |---|---|---|
 | `id` | `string` | The instance ID. |
 | `name` | `string` | The instance name. |
-| `type` | `string\|InstanceType` | `app`, `service`, or `queue`. |
+| `type` | `string\|InstanceType` | `app`, `service`, `queue`, `serverless_queue`, or `managed_queue`. |
 | `size` | `string\|InstanceSize` | The compute size (e.g., `flex-small`, `pro-medium`). |
 | `scalingType` | `string\|InstanceScalingType` | `none`, `custom`, or `auto`. |
 | `minReplicas` | `int` | Minimum number of replicas. |
@@ -734,6 +777,30 @@ $sizes = LaravelCloud::instanceSizes();
 | `backgroundProcesses` | `BackgroundProcessData[]` | Background processes attached to this instance. |
 | `createdAt` | `?CarbonImmutable` | When the instance was created. |
 | `environment` | `?EnvironmentData` | The parent environment. |
+| `queueStatus` | `string\|ManagedQueueStatus\|null` | Managed queue status: `creating`, `available`, `updating`, `deleting`, `deleted`, or `unknown`. |
+| `paused` | `?bool` | Whether the managed queue is paused. |
+| `isDefault` | `?bool` | Whether this is the environment's default managed queue. |
+| `visibilityTimeout` | `?int` | Managed queue visibility timeout in seconds. |
+| `pollingInterval` | `?int` | Managed queue polling interval in seconds. |
+| `shutdownTimeout` | `?int` | Managed queue graceful shutdown timeout in seconds. |
+| `sleepWithApp` | `?bool` | Whether the managed queue sleeps with the app instance. |
+
+</details>
+
+<details>
+<summary>Response: <code>ManagedQueueFailedJobData</code></summary>
+
+| Property | Type | Description |
+|---|---|---|
+| `id` | `string` | The failed job ID. |
+| `name` | `?string` | The job class or display name. |
+| `queue` | `?string` | The queue the job was pulled from. |
+| `failedAt` | `?CarbonImmutable` | When the job failed. |
+| `startedAt` | `?CarbonImmutable` | When the job started processing. |
+| `attempts` | `string` | Number of attempts recorded by Laravel Cloud. |
+| `exception` | `string` | The exception message or trace for the failed job. |
+| `retriedAt` | `?CarbonImmutable` | When the job was last retried. |
+| `retryReservedUntil` | `?CarbonImmutable` | When the retry reservation expires. |
 
 </details>
 

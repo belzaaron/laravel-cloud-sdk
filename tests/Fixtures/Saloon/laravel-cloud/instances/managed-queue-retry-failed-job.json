@@ -1,0 +1,28 @@
+{
+    "statusCode": 202,
+    "headers": {
+        "Date": "Thu, 16 Jul 2026 23:08:33 GMT",
+        "Content-Type": "application\/json",
+        "Content-Length": "39",
+        "Connection": "keep-alive",
+        "x-amzn-remapped-date": "Thu, 16 Jul 2026 23:08:33 GMT",
+        "x-amzn-requestid": "REDACTED",
+        "access-control-allow-origin": "*",
+        "strict-transport-security": "max-age=31536000",
+        "x-ratelimit-remaining": "59",
+        "x-amz-apigw-id": "REDACTED",
+        "Cache-Control": "no-cache, private",
+        "x-ratelimit-limit": "60",
+        "x-amzn-trace-id": "REDACTED",
+        "x-cache": "Miss from cloudfront",
+        "via": "1.1 f60b9d3e7a1c4285b93d0f6e1a8c5374.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "FRA60-P4",
+        "x-amz-cf-id": "REDACTED",
+        "cf-cache-status": "DYNAMIC",
+        "set-cookie": "REDACTED",
+        "Server": "cloudflare",
+        "CF-RAY": "REDACTED"
+    },
+    "data": "{\"message\":\"The job is being retried.\"}",
+    "context": []
+}

@@ -7,6 +7,7 @@ use Redberry\LaravelCloudSdk\Enums\DaemonType;
 use Redberry\LaravelCloudSdk\Enums\InstanceScalingType;
 use Redberry\LaravelCloudSdk\Enums\InstanceSize;
 use Redberry\LaravelCloudSdk\Enums\InstanceType;
+use Redberry\LaravelCloudSdk\Enums\ManagedQueueStatus;
 
 it('builds from response attributes', function () {
     $data = InstanceData::fromResponse([
@@ -78,4 +79,45 @@ it('accepts background processes', function () {
     expect($data->backgroundProcesses)->toHaveCount(1);
     expect($data->backgroundProcesses[0])->toBeInstanceOf(BackgroundProcessData::class);
     expect($data->backgroundProcesses[0]->type)->toBe(DaemonType::Worker);
+});
+
+it('preserves existing positional optional parameters', function () {
+    $backgroundProcesses = [
+        new BackgroundProcessData(type: DaemonType::Worker, processes: 1),
+    ];
+    $createdAt = CarbonImmutable::parse('2024-01-15T10:00:00Z');
+
+    $data = new InstanceData(
+        'instance-abc',
+        'my-service',
+        InstanceType::Service,
+        InstanceSize::FlexM1vcpu1gb,
+        InstanceScalingType::None,
+        1,
+        1,
+        false,
+        null,
+        null,
+        $backgroundProcesses,
+        $createdAt,
+    );
+
+    expect($data->backgroundProcesses)->toBe($backgroundProcesses);
+    expect($data->createdAt)->toBe($createdAt);
+    expect($data->queueStatus)->toBeNull();
+});
+
+it('hydrates an unknown managed queue status', function () {
+    $data = InstanceData::fromResponse([
+        'name' => 'orders',
+        'type' => 'managed_queue',
+        'size' => 'flex.m-1vcpu-1gb',
+        'scaling_type' => 'custom',
+        'min_replicas' => 0,
+        'max_replicas' => 5,
+        'uses_scheduler' => false,
+        'queue_status' => 'unknown',
+    ], 'instance-queue');
+
+    expect($data->queueStatus)->toBe(ManagedQueueStatus::Unknown);
 });

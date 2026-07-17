@@ -93,6 +93,29 @@ it('creates an instance with string enums', function () {
     expect($result)->toBeInstanceOf(InstanceData::class);
 });
 
+it('preserves the positional background processes parameter when creating an instance', function () {
+    Saloon::fake([
+        CreateInstanceRequest::class => new LaravelCloudFixture('instances/create'),
+    ]);
+
+    $result = (new LaravelCloud('token'))->createInstance(
+        'env-a14fe550-4e39-4ff2-8016-a20e4d32a996',
+        'App',
+        InstanceType::App,
+        InstanceSize::FlexG1vcpu512mb,
+        InstanceScalingType::None,
+        1,
+        1,
+        false,
+        null,
+        null,
+        [],
+    );
+
+    Saloon::assertSent(CreateInstanceRequest::class);
+    expect($result)->toBeInstanceOf(InstanceData::class);
+});
+
 it('creates an instance via createInstanceWith()', function () {
     Saloon::fake([
         CreateInstanceRequest::class => new LaravelCloudFixture('instances/create'),

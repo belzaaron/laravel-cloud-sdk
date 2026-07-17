@@ -88,3 +88,29 @@ it('serializes background_processes when set', function () {
     expect($array['background_processes'][0]['processes'])->toBe(1);
     expect($array['background_processes'][0]['command'])->toBe('php artisan queue:work');
 });
+
+it('preserves the positional background processes parameter', function () {
+    $backgroundProcesses = [
+        new BackgroundProcessData(
+            type: DaemonType::Custom,
+            processes: 1,
+            command: 'php artisan queue:work',
+        ),
+    ];
+
+    $data = new CreateInstanceData(
+        'test-worker',
+        InstanceType::Service,
+        InstanceSize::FlexM1vcpu1gb,
+        InstanceScalingType::None,
+        1,
+        1,
+        true,
+        null,
+        null,
+        $backgroundProcesses,
+    );
+
+    expect($data->backgroundProcesses)->toBe($backgroundProcesses);
+    expect($data->visibilityTimeout)->toBeInstanceOf(Optional::class);
+});

@@ -25,5 +25,9 @@ class UpdateInstanceData extends Data
         public bool|Optional $usesInertiaSsr = new Optional,
         public int|null|Optional $scalingCpuThresholdPercentage = new Optional,
         public int|null|Optional $scalingMemoryThresholdPercentage = new Optional,
+        public int|null|Optional $visibilityTimeout = new Optional,
+        public int|null|Optional $pollingInterval = new Optional,
+        public int|null|Optional $shutdownTimeout = new Optional,
+        public bool|null|Optional $sleepWithApp = new Optional,
     ) {}
 }

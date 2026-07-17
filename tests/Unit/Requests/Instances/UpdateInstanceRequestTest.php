@@ -5,12 +5,14 @@ use Redberry\LaravelCloudSdk\Data\Instances\InstanceData;
 use Redberry\LaravelCloudSdk\Data\Instances\UpdateInstanceData;
 use Redberry\LaravelCloudSdk\Enums\InstanceScalingType;
 use Redberry\LaravelCloudSdk\Enums\InstanceSize;
+use Redberry\LaravelCloudSdk\Exceptions\ValidationException;
 use Redberry\LaravelCloudSdk\Requests\Applications\ListApplicationsRequest;
 use Redberry\LaravelCloudSdk\Requests\Environments\ListEnvironmentsRequest;
 use Redberry\LaravelCloudSdk\Requests\Instances\ListInstancesRequest;
 use Redberry\LaravelCloudSdk\Requests\Instances\UpdateInstanceRequest;
 use Redberry\LaravelCloudSdk\Tests\Fixtures\LaravelCloudFixture;
 use Saloon\Enums\Method;
+use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
 
 it('resolves the endpoint correctly', function () {
@@ -41,6 +43,10 @@ it('sends correct body with all optional fields', function () {
         usesInertiaSsr: false,
         scalingCpuThresholdPercentage: 75,
         scalingMemoryThresholdPercentage: null,
+        visibilityTimeout: 60,
+        pollingInterval: 20,
+        shutdownTimeout: 30,
+        sleepWithApp: false,
     );
     $request = new UpdateInstanceRequest('inst-123', $data);
     $body = $request->body()->all();
@@ -57,6 +63,10 @@ it('sends correct body with all optional fields', function () {
     expect($body['uses_inertia_ssr'])->toBeFalse();
     expect($body['scaling_cpu_threshold_percentage'])->toBe(75);
     expect($body['scaling_memory_threshold_percentage'])->toBeNull();
+    expect($body['visibility_timeout'])->toBe(60);
+    expect($body['polling_interval'])->toBe(20);
+    expect($body['shutdown_timeout'])->toBe(30);
+    expect($body['sleep_with_app'])->toBeFalse();
 });
 
 it('excludes unset optional fields from body', function () {
@@ -70,7 +80,34 @@ it('excludes unset optional fields from body', function () {
     expect($body)->not->toHaveKey('uses_scheduler');
     expect($body)->not->toHaveKey('uses_octane');
     expect($body)->not->toHaveKey('scaling_cpu_threshold_percentage');
+    expect($body)->not->toHaveKey('visibility_timeout');
+    expect($body)->not->toHaveKey('polling_interval');
+    expect($body)->not->toHaveKey('shutdown_timeout');
+    expect($body)->not->toHaveKey('sleep_with_app');
 });
+
+it('throws validation errors for invalid managed queue fields when updating an instance', function () {
+    Saloon::fake([
+        UpdateInstanceRequest::class => MockResponse::make([
+            'message' => 'The given data was invalid.',
+            'errors' => [
+                'polling_interval' => ['The polling interval must be at least 1.'],
+            ],
+        ], 422),
+    ]);
+
+    $data = new UpdateInstanceData(pollingInterval: 0);
+
+    $connector = new LaravelCloudConnector(config('laravel-cloud-sdk.token'));
+
+    try {
+        $connector->send(new UpdateInstanceRequest('inst-123', $data))->throw();
+    } catch (ValidationException $e) {
+        expect($e->errors())->toHaveKey('polling_interval');
+
+        throw $e;
+    }
+})->throws(ValidationException::class);
 
 it('updates an instance and returns InstanceData', function () {
     Saloon::fake([

@@ -1,0 +1,26 @@
+{
+    "statusCode": 204,
+    "headers": {
+        "Date": "Thu, 16 Jul 2026 23:09:47 GMT",
+        "Connection": "keep-alive",
+        "x-amzn-remapped-date": "Thu, 16 Jul 2026 23:09:47 GMT",
+        "x-amzn-requestid": "REDACTED",
+        "access-control-allow-origin": "*",
+        "strict-transport-security": "max-age=31536000",
+        "x-ratelimit-remaining": "58",
+        "x-amz-apigw-id": "REDACTED",
+        "Cache-Control": "no-cache, private",
+        "x-ratelimit-limit": "60",
+        "x-amzn-trace-id": "REDACTED",
+        "x-cache": "Miss from cloudfront",
+        "via": "1.1 b74e0a2d9c6f3851a02d7e4f1b9c6085.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "FRA60-P4",
+        "x-amz-cf-id": "REDACTED",
+        "cf-cache-status": "DYNAMIC",
+        "set-cookie": "REDACTED",
+        "Server": "cloudflare",
+        "CF-RAY": "REDACTED"
+    },
+    "data": "",
+    "context": []
+}

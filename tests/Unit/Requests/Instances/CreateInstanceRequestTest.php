@@ -8,12 +8,14 @@ use Redberry\LaravelCloudSdk\Enums\DaemonType;
 use Redberry\LaravelCloudSdk\Enums\InstanceScalingType;
 use Redberry\LaravelCloudSdk\Enums\InstanceSize;
 use Redberry\LaravelCloudSdk\Enums\InstanceType;
+use Redberry\LaravelCloudSdk\Exceptions\ValidationException;
 use Redberry\LaravelCloudSdk\Requests\Applications\ListApplicationsRequest;
 use Redberry\LaravelCloudSdk\Requests\Environments\ListEnvironmentsRequest;
 use Redberry\LaravelCloudSdk\Requests\Instances\CreateInstanceRequest;
 use Redberry\LaravelCloudSdk\Tests\Fixtures\LaravelCloudFixture;
 use Saloon\Contracts\Body\HasBody;
 use Saloon\Enums\Method;
+use Saloon\Http\Faking\MockResponse;
 use Saloon\Laravel\Facades\Saloon;
 
 it('resolves the endpoint correctly', function () {
@@ -101,6 +103,60 @@ it('excludes unset optional fields from body', function () {
     expect($body)->not->toHaveKey('scaling_memory_threshold_percentage');
     expect($body)->not->toHaveKey('background_processes');
 });
+
+it('sends managed queue fields in body', function () {
+    $data = new CreateInstanceData(
+        name: 'orders',
+        type: InstanceType::ManagedQueue,
+        size: InstanceSize::FlexM1vcpu1gb,
+        scalingType: InstanceScalingType::Custom,
+        maxReplicas: 5,
+        minReplicas: 0,
+        visibilityTimeout: 60,
+        pollingInterval: 20,
+        shutdownTimeout: 30,
+        sleepWithApp: false,
+    );
+    $request = new CreateInstanceRequest('env-123', $data);
+    $body = $request->body()->all();
+
+    expect($body['type'])->toBe('managed_queue');
+    expect($body['visibility_timeout'])->toBe(60);
+    expect($body['polling_interval'])->toBe(20);
+    expect($body['shutdown_timeout'])->toBe(30);
+    expect($body['sleep_with_app'])->toBeFalse();
+});
+
+it('throws validation errors for invalid managed queue fields when creating an instance', function () {
+    Saloon::fake([
+        CreateInstanceRequest::class => MockResponse::make([
+            'message' => 'The given data was invalid.',
+            'errors' => [
+                'visibility_timeout' => ['The visibility timeout must be at least 1.'],
+            ],
+        ], 422),
+    ]);
+
+    $data = new CreateInstanceData(
+        name: 'orders',
+        type: InstanceType::ManagedQueue,
+        size: InstanceSize::FlexM1vcpu1gb,
+        scalingType: InstanceScalingType::Custom,
+        maxReplicas: 5,
+        minReplicas: 0,
+        visibilityTimeout: 0,
+    );
+
+    $connector = new LaravelCloudConnector(config('laravel-cloud-sdk.token'));
+
+    try {
+        $connector->send(new CreateInstanceRequest('env-123', $data))->throw();
+    } catch (ValidationException $e) {
+        expect($e->errors())->toHaveKey('visibility_timeout');
+
+        throw $e;
+    }
+})->throws(ValidationException::class);
 
 it('creates an instance and returns InstanceData', function () {
     Saloon::fake([

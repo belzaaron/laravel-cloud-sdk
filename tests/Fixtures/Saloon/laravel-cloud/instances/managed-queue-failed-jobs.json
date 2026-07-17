@@ -1,0 +1,28 @@
+{
+    "statusCode": 200,
+    "headers": {
+        "Date": "Thu, 16 Jul 2026 23:06:52 GMT",
+        "Content-Type": "application\/vnd.api+json",
+        "Content-Length": "1174",
+        "Connection": "keep-alive",
+        "x-amzn-remapped-date": "Thu, 16 Jul 2026 23:06:52 GMT",
+        "x-amzn-requestid": "REDACTED",
+        "access-control-allow-origin": "*",
+        "strict-transport-security": "max-age=31536000",
+        "x-ratelimit-remaining": "117",
+        "x-amz-apigw-id": "REDACTED",
+        "Cache-Control": "no-cache, private",
+        "x-ratelimit-limit": "120",
+        "x-amzn-trace-id": "REDACTED",
+        "x-cache": "Miss from cloudfront",
+        "via": "1.1 e83a6c1d4f7b9052a61c8d3e0f5b7248.cloudfront.net (CloudFront)",
+        "x-amz-cf-pop": "FRA60-P4",
+        "x-amz-cf-id": "REDACTED",
+        "cf-cache-status": "DYNAMIC",
+        "set-cookie": "REDACTED",
+        "Server": "cloudflare",
+        "CF-RAY": "REDACTED"
+    },
+    "data": "{\"data\":[{\"id\":\"failed-job-123\",\"type\":\"managed_queue_failed_jobs\",\"attributes\":{\"name\":\"App\\\\Jobs\\\\ProcessOrder\",\"queue\":\"default\",\"failed_at\":\"2026-07-16T23:01:00.000000Z\",\"started_at\":\"2026-07-16T23:00:55.000000Z\",\"attempts\":\"3\",\"exception\":\"RuntimeException: Failed\",\"retried_at\":null,\"retry_reserved_until\":null}}],\"links\":{\"first\":\"https:\\\/\\\/cloud.laravel.com\\\/api\\\/instances\\\/inst-9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d\\\/failed-jobs?page=1\",\"last\":\"https:\\\/\\\/cloud.laravel.com\\\/api\\\/instances\\\/inst-9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d\\\/failed-jobs?page=1\",\"prev\":null,\"next\":null},\"meta\":{\"current_page\":1,\"from\":1,\"last_page\":1,\"links\":[{\"url\":null,\"label\":\"&laquo; Previous\",\"page\":null,\"active\":false},{\"url\":\"https:\\\/\\\/cloud.laravel.com\\\/api\\\/instances\\\/inst-9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d\\\/failed-jobs?page=1\",\"label\":\"1\",\"page\":1,\"active\":true},{\"url\":null,\"label\":\"Next &raquo;\",\"page\":null,\"active\":false}],\"path\":\"https:\\\/\\\/cloud.laravel.com\\\/api\\\/instances\\\/inst-9b1deb4d-3b7d-4bad-9bdd-2b0d7b3dcb6d\\\/failed-jobs\",\"per_page\":15,\"to\":1,\"total\":1}}",
+    "context": []
+}
